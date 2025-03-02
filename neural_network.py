@@ -1,4 +1,6 @@
+from typing import Any
 import numpy as np
+from numpy._typing import _UnknownType
 
 class NeuralNetwork:
     """
@@ -90,3 +92,115 @@ class NeuralNetwork:
             cache[f"Z{l}"] = Z
 
         return A, cache
+
+    def cost_function(self, Y_P:np.ndarray, Y_G:np.ndarray):
+        """
+        Compute cost using CROSS-ENTROPY LOSS, not minimum square difference
+
+        Parameters
+        ----------
+            Y_P: Predicted output
+            Y_G: Golden label output
+        """
+        m = Y_G.shape[1]
+        return (-1/m) * np.sum(Y_G * np.log(Y_P))
+
+    def BACK_WARDPROPAGATION(self, X: np.ndarray, Y: np.ndarray, cache:dict[str, np.ndarray]) -> dict[str, Any] :
+        """
+        Perform the back_propagation of the neural network given the input values,
+        the golden label output values and the cache for (activations/z)
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input layer values
+        Y: np.ndarray
+            Golden label output values
+        cache : The cached values of (activations/z)
+           {"Ai": array with activation values for layer (i)} 
+           {"Zi": array with z values for layer (i)}  
+
+        Return
+        ------
+        The gradients calculated
+            {"dWi": difference of weights in layer (i)}
+            {"dBi": difference of biases in layer (i)}
+        """
+        m = X.shape[1]
+        grads = {}
+
+        # Compute the output layer gradient
+        A_final = cache[f"A{self.L}"]
+        dZ = A_final - Y # softmax derivate for cross-entropy loss
+
+        for l in reversed(range(1, self.L +1)):
+            A_prev = cache[f"A{l-1}"]
+            dW = (1/m) * np.dot(dZ, A_prev.T)
+            dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
+
+            grads[f"dW{l}"] = dW
+            grads[f"dB{l}"] = dB
+
+            # back propagation with ReLU
+            if l > 1:
+                dA = np.dot(self.weights[l].T, dZ)
+                dZ = np.where(cache[f"Z{l-1}"] > 0, dA, 0)
+
+        return grads
+
+    def update_parameters(self, grads: dict[str, Any], learning_rate=0.01):
+        """
+        Update the weight/biases parameters of the neural network 
+        using the gradient descent values.
+
+        Parameters
+        ----------
+        grads : dict[str, Any]
+            Calculated gradient values
+            {"dWi": difference of weights in layer (i)}
+            {"dBi": difference of biases in layer (i)}
+        """
+        for l in range(1, self.L +1):
+            self.weights[l] -= learning_rate * grads[f"dW{l}"]
+            self.biases[l] -= learning_rate * grads[f"dB{l}"]
+
+
+    def TRAIN(self, X, Y, epochs: int=1000, learning_rate:float =0.01, batch_size:int | None = None):
+        """
+        Train the neural network given a training dataset and the golden labels
+        for each input of train set.
+
+        Parameters
+        ----------
+        X : np.ndarray, shape(input_features, num_samples)
+            Training dataset where each column is a sample and each row a feature
+        Y: np.ndarray, shape(output_clases, num_samples)
+            Golden label/True label corresponding to each sample of the training set
+        epochs: int
+            Number of times the entire dataset is passed through the neural network
+            May lead to overfit
+        learning_rate: float
+            Control of the step size while updating the network parameters
+            (Too high => May overshoot optimal values)
+            (Too low => Slow convergence)
+        batch_size: int
+            Controls the number of randomly selected training samples per update.
+            if set uses mini-batch gradient descent to not iterate over all the training set
+            None => Uses all data
+        """
+        m = X.shape[1]
+        for i in range(epochs):
+            if batch_size:
+               indices = np.random.choice(m, batch_size, replace=False) 
+               X_batch = X[: indices]
+               Y_batch = Y[: indices]
+            else:
+                X_batch = X
+                Y_batch = Y
+
+            Y_P, cache = self.FORWARD_PROPAGATION(X_batch)
+            cost = self.cost_function(Y_P, Y_batch)
+            grads = self.BACK_WARDPROPAGATION(X_batch, Y_batch, cache)
+            self.update_parameters(grads, learning_rate)
+
+            if i % 100: print(f"Epoch{i}, Cost: {cost:.4f}")
