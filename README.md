@@ -7,12 +7,12 @@ This repo is a learning proyect.
 ~~2- Neuron initialization~~
 ~~3- Forward propagation, activation function~~
 ~~4- Backward progagation~~
-5- Training network
+~~5- Training network~~
+~~6- Save neural network weights~~
 ~~6- Test network
     * cost
     * recall
     * precission
     * accuracy
     * F~~
-6- Inference
-
+~~6- Inference~~

@@ -5,7 +5,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 class NeuralNetwork:
     """
     Implementation of the basic vanilla neural network.
-    General porpuse network that allow the definition of:
+    General purpose network that allow the definition of:
         - (x) neurons for the input layer, 
         - (i1,i2,...,in) neurons each for each hidden layer,
         - (y) neurons for the output layer,
@@ -24,7 +24,7 @@ class NeuralNetwork:
         - softmax(X) =>  [(xi)/(sum(xj are in X))]
     """
 
-    def __init__(self, layers: list[int]) -> None:
+    def __init__(self, layers: list[int] | None = None, filename:str | None = None) -> None:
         """
         Initialize the neural network with as many layers as (layers) length
         and with as many neurons as defined for each one in its position.
@@ -39,16 +39,65 @@ class NeuralNetwork:
 
             Example: [3, 5, 2] (Input layer: 3 neurons, Hidden: 5, Output: 2)
         """
-        self.L = len(layers) - 1
+        # if a file is provided use this parameters
+        if filename:
+            self.load_model(filename)
+        # if layers are provided use this one
+        elif layers:
+            self.L = len(layers) - 1
+            self.weights: dict[int, np.ndarray] =  {}
+            self.biases: dict[int, np.ndarray] = {}
+            # only used when its needed to save data in a file
+            self.layers = layers 
+
+            # Initialize weights and biases using He initialization
+            for l in range(1, self.L + 1):
+                # He initialization for weights
+                self.weights[l] = np.random.randn(layers[l], layers[l-1]) * np.sqrt(2 / layers[l-1])
+                self.biases[l] = np.zeros((layers[l], 1))
+
+
+        else: raise ValueError("Error should provided layers or filename for parameters")
+
+    def save_model(self, filename: str = "parameters.npz", verbose=False):
+        """
+        Save the current parameters: weights & biases stored in a file
+
+        Parameters
+        ----------
+        filename : str
+            Path and file name, where to save the Parameters
+        """
+        params = {}
+        params["layers"] = self.layers
+    
+        for l in self.weights:
+            params[f"W{l}"] = self.weights[l]
+        for l in self.biases:
+            params[f"b{l}"] = self.biases[l]
+        
+        if verbose: print("Saving model Parameters...", end="")
+        np.savez(filename, **params)
+        if verbose: print(", ...Model saved")
+        return
+
+    def load_model(self, filename: str = "parameters.npz", verbose=False):
+        """
+        Load parameters: weights & biases stored in a file
+        """
+        loaded_data = np.load(filename)
+        self.layers = loaded_data["layers"].tolist()
+        self.L = len(self.layers) - 1
         self.weights: dict[int, np.ndarray] =  {}
         self.biases: dict[int, np.ndarray] = {}
 
-        # Initialize weights and biases
+        if verbose: print(f"Loading model...", end="")
         for l in range(1, self.L + 1):
-            # weight random values to break simetry
-            # small variations to avoid large activation that leads to saturation of activation function
-            self.weights[l] = np.random.rand(layers[l], layers[l-1]) * 0.01
-            self.biases[l] = np.zeros((layers[l], 1))
+            self.weights[l] = loaded_data[f"W{l}"]
+            self.biases[l] = loaded_data[f"b{l}"]
+            if verbose: print(f"{l/(self.L + 1)*100}%, ", end="")
+        if verbose: print()
+
 
     def relu(self, Z: np.ndarray) -> np.ndarray:
         """Implementation of ReLU non-linear function for a given matrix"""
@@ -84,8 +133,8 @@ class NeuralNetwork:
             Z = np.dot(self.weights[l], A) + self.biases[l]
 
             # a = non-linear(z)
-            if l == self.L: A = self.relu(Z)
-            else: A = self.softmax(Z)
+            if l == self.L: A = self.softmax(Z)
+            else: A = self.relu(Z)
 
             # cache the activation results
             cache[f"A{l}"] = A
@@ -103,7 +152,8 @@ class NeuralNetwork:
             Y_G: Golden label output
         """
         m = Y_G.shape[1]
-        return (-1/m) * np.sum(Y_G * np.log(Y_P))
+        epsilon = 1e-8 # avoid log(0)
+        return (-1/m) * np.sum(Y_G * np.log(Y_P + epsilon))
 
     def BACK_WARDPROPAGATION(self, X: np.ndarray, Y: np.ndarray, cache:dict[str, np.ndarray]) -> dict[str, Any] :
         """
@@ -133,7 +183,7 @@ class NeuralNetwork:
         A_final = cache[f"A{self.L}"]
         dZ = A_final - Y # softmax derivate for cross-entropy loss
 
-        for l in reversed(range(1, self.L +1)):
+        for l in reversed(range(1, self.L + 1)):
             A_prev = cache[f"A{l-1}"]
             dW = (1/m) * np.dot(dZ, A_prev.T)
             dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
@@ -141,10 +191,13 @@ class NeuralNetwork:
             grads[f"dW{l}"] = dW
             grads[f"dB{l}"] = dB
 
-            # back propagation with ReLU
-            if l > 1:
+            if l > 1:  # Skip for input layer
                 dA = np.dot(self.weights[l].T, dZ)
-                dZ = np.where(cache[f"Z{l-1}"] > 0, dA, 0)
+
+                # Apply the derivative of ReLU
+                Z_prev = cache[f"Z{l-1}"]  # Corrected: Use Z{l-1} instead of Z{l}
+                dZ = dA * (Z_prev > 0)  # ReLU derivative: 1 if Z > 0, else 0
+
 
         return grads
 
@@ -164,7 +217,7 @@ class NeuralNetwork:
             self.weights[l] -= learning_rate * grads[f"dW{l}"]
             self.biases[l] -= learning_rate * grads[f"dB{l}"]
 
-    def batch_generator(self, X: np.ndarray, Y:np.ndarray, batch_size: int):
+    def batch_generator(self, X: np.ndarray, Y: np.ndarray, batch_size: int):
         """
         Generator function to yield mini-batches of data.
         
@@ -175,18 +228,23 @@ class NeuralNetwork:
         Y : np.ndarray 
             True labels of shape (classes, samples)
         batch_size : int
-             Size of each mini-batch
+            Size of each mini-batch
         
         Yields
         ------
         Tuple[np.ndarray, np.ndarray]: Mini-batch (X_batch, Y_batch)
-        """ 
+        
+        Note
+        ----
+        If batch_size exceeds the number of samples, the final batch may be smaller 
+        than batch_size, containing the remaining samples.
+        """
         m = X.shape[1]
         indices = np.arange(m)
         np.random.shuffle(indices)
         for i in range(0, m, batch_size):
-            batch_indices = indices[i: i+batch_size]
-            yield X[: batch_indices], Y[:, batch_indices]
+            batch_indices = indices[i:i + batch_size]
+            yield X[:, batch_indices], Y[:, batch_indices]
 
     def print_metrics(self, predictions: np.ndarray, true_labels: np.ndarray, cost, epoch=0, batch=0):
         precision = precision_score(true_labels, predictions, average='macro')
@@ -195,17 +253,16 @@ class NeuralNetwork:
         accuracy = accuracy_score(true_labels, predictions)
    
         print("---------------------------------------------------------------------")
-        print(f"Epoch:      {epoch}, 
-                Batch:      {batch}
-                Cost:       {cost:.4f}, 
-                Accuracy:   {accuracy:.4f}, 
-                Precision:  {precision:.4f}, 
-                Recall:     {recall:.4f}, 
-                F1 Score:   {f1:.4f}")
+        print(f"Epoch:      {epoch}\n"
+              f"Batch:      {batch}\n"
+              f"Cost:       {cost:.4f}\n"
+              f"Accuracy:   {accuracy:.4f}\n"
+              f"Precision:  {precision:.4f}\n"
+              f"Recall:     {recall:.4f}\n"
+              f"F1 Score:   {f1:.4f}")
         print("---------------------------------------------------------------------")
 
-
-    def TRAIN(self, X, Y, epochs: int=1000, learning_rate:float =0.01, batch_size:int | None = None, verbose: bool = True):
+    def TRAIN(self, X, Y, epochs: int = 1000, learning_rate: float = 0.01, batch_size: int | None = None, verbose: bool = False):
         """
         Train the neural network given a training dataset and the golden labels
         for each input of train set.
@@ -214,7 +271,7 @@ class NeuralNetwork:
         ----------
         X : np.ndarray, shape(input_features, num_samples)
             Training dataset where each column is a sample and each row a feature
-        Y: np.ndarray, shape(output_clases, num_samples)
+        Y: np.ndarray, shape(output_classes, num_samples)
             Golden label/True label corresponding to each sample of the training set
         epochs: int
             Number of times the entire dataset is passed through the neural network
@@ -225,24 +282,39 @@ class NeuralNetwork:
             (Too low => Slow convergence)
         batch_size: int
             Controls the number of randomly selected training samples per update.
-            if set uses mini-batch gradient descent to not iterate over all the training set
+            If set, uses mini-batch gradient descent to not iterate over all the training set
             None => Uses all data
+        verbose: bool
+            If True, prints training metrics
         """
-        cost = 0
+        # Input validation
+        if X.shape[0] != self.layers[0]:
+            raise ValueError(f"X shape[0] ({X.shape[0]}) must match input layer size ({self.layers[0]})")
+        if Y.shape[0] != self.layers[-1]:
+            raise ValueError(f"Y shape[0] ({Y.shape[0]}) must match output layer size ({self.layers[-1]})")
+        if X.shape[1] != Y.shape[1]:
+            raise ValueError(f"Number of samples in X ({X.shape[1]}) and Y ({Y.shape[1]}) must match")
+
         for i in range(epochs):
             if batch_size:
-                batch_gen = self.batch_generator(X,Y,batch_size)
+                batch_gen = self.batch_generator(X, Y, batch_size)
+                batch_costs = []
                 batch_i = -1
                 for X_batch, Y_batch in batch_gen:
                     batch_i += 1
                     Y_P, cache = self.FORWARD_PROPAGATION(X_batch)
                     cost = self.cost_function(Y_P, Y_batch)
+                    batch_costs.append(cost)
                     grads = self.BACK_WARDPROPAGATION(X_batch, Y_batch, cache)
                     self.update_parameters(grads, learning_rate)
-                    if verbose:
+                    if verbose and batch_i == 0:  # Print only for first batch as an example
                         predictions = np.argmax(Y_P, axis=0)
-                        true_labels = np.argmax(Y, axis=0)
+                        true_labels = np.argmax(Y_batch, axis=0)
                         self.print_metrics(predictions, true_labels, cost, epoch=i, batch=batch_i)
+                # Compute and print average cost across batches
+                avg_cost = np.mean(batch_costs)
+                if verbose:
+                    print(f"Epoch {i} - Average Cost Across Batches: {avg_cost:.4f}")
             else:
                 Y_P, cache = self.FORWARD_PROPAGATION(X)
                 cost = self.cost_function(Y_P, Y)
@@ -252,5 +324,38 @@ class NeuralNetwork:
                     predictions = np.argmax(Y_P, axis=0)
                     true_labels = np.argmax(Y, axis=0)
                     self.print_metrics(predictions, true_labels, cost, epoch=i)
+        return
 
 
+    def TEST(self, X, Y, batch_size: int | None = None, verbose=False):
+        """
+        Allows to test a given set of inputs with its golden labels
+        and display
+        """
+        # Input validation
+        if X.shape[0] != self.layers[0]:
+            raise ValueError(f"X shape[0] ({X.shape[0]}) must match input layer size ({self.layers[0]})")
+        if Y.shape[0] != self.layers[-1]:
+            raise ValueError(f"Y shape[0] ({Y.shape[0]}) must match output layer size ({self.layers[-1]})")
+        if X.shape[1] != Y.shape[1]:
+            raise ValueError(f"Number of samples in X ({X.shape[1]}) and Y ({Y.shape[1]}) must match")
+
+        if batch_size:
+            batch_gen = self.batch_generator(X, Y, batch_size)
+            batch_i = -1
+            for X_batch, Y_batch in batch_gen:
+                batch_i += 1
+                Y_P, _ = self.FORWARD_PROPAGATION(X_batch)
+                cost = self.cost_function(Y_P, Y_batch)
+                if verbose:
+                    predictions = np.argmax(Y_P, axis=0)
+                    true_labels = np.argmax(Y_batch, axis=0)
+                    self.print_metrics(predictions, true_labels, cost, batch=batch_i)
+        else:
+            Y_P, _ = self.FORWARD_PROPAGATION(X)
+            cost = self.cost_function(Y_P, Y)
+            if verbose:
+                predictions = np.argmax(Y_P, axis=0)
+                true_labels = np.argmax(Y, axis=0)
+                self.print_metrics(predictions, true_labels, cost)
+        return
