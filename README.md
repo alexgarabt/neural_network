@@ -8,5 +8,11 @@ This repo is a learning proyect.
 ~~3- Forward propagation, activation function~~
 ~~4- Backward progagation~~
 5- Training network
+~~6- Test network
+    * cost
+    * recall
+    * precission
+    * accuracy
+    * F~~
 6- Inference
 

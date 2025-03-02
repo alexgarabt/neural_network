@@ -1,6 +1,6 @@
-from typing import Any
 import numpy as np
-from numpy._typing import _UnknownType
+from typing import Any
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
 class NeuralNetwork:
     """
@@ -164,8 +164,48 @@ class NeuralNetwork:
             self.weights[l] -= learning_rate * grads[f"dW{l}"]
             self.biases[l] -= learning_rate * grads[f"dB{l}"]
 
+    def batch_generator(self, X: np.ndarray, Y:np.ndarray, batch_size: int):
+        """
+        Generator function to yield mini-batches of data.
+        
+        Parameters
+        ----------
+        X : np.ndarray 
+            Input data of shape (features, samples)
+        Y : np.ndarray 
+            True labels of shape (classes, samples)
+        batch_size : int
+             Size of each mini-batch
+        
+        Yields
+        ------
+        Tuple[np.ndarray, np.ndarray]: Mini-batch (X_batch, Y_batch)
+        """ 
+        m = X.shape[1]
+        indices = np.arange(m)
+        np.random.shuffle(indices)
+        for i in range(0, m, batch_size):
+            batch_indices = indices[i: i+batch_size]
+            yield X[: batch_indices], Y[:, batch_indices]
 
-    def TRAIN(self, X, Y, epochs: int=1000, learning_rate:float =0.01, batch_size:int | None = None):
+    def print_metrics(self, predictions: np.ndarray, true_labels: np.ndarray, cost, epoch=0, batch=0):
+        precision = precision_score(true_labels, predictions, average='macro')
+        recall = recall_score(true_labels, predictions, average='macro')
+        f1 = f1_score(true_labels, predictions, average='macro')
+        accuracy = accuracy_score(true_labels, predictions)
+   
+        print("---------------------------------------------------------------------")
+        print(f"Epoch:      {epoch}, 
+                Batch:      {batch}
+                Cost:       {cost:.4f}, 
+                Accuracy:   {accuracy:.4f}, 
+                Precision:  {precision:.4f}, 
+                Recall:     {recall:.4f}, 
+                F1 Score:   {f1:.4f}")
+        print("---------------------------------------------------------------------")
+
+
+    def TRAIN(self, X, Y, epochs: int=1000, learning_rate:float =0.01, batch_size:int | None = None, verbose: bool = True):
         """
         Train the neural network given a training dataset and the golden labels
         for each input of train set.
@@ -188,19 +228,29 @@ class NeuralNetwork:
             if set uses mini-batch gradient descent to not iterate over all the training set
             None => Uses all data
         """
-        m = X.shape[1]
+        cost = 0
         for i in range(epochs):
             if batch_size:
-               indices = np.random.choice(m, batch_size, replace=False) 
-               X_batch = X[: indices]
-               Y_batch = Y[: indices]
+                batch_gen = self.batch_generator(X,Y,batch_size)
+                batch_i = -1
+                for X_batch, Y_batch in batch_gen:
+                    batch_i += 1
+                    Y_P, cache = self.FORWARD_PROPAGATION(X_batch)
+                    cost = self.cost_function(Y_P, Y_batch)
+                    grads = self.BACK_WARDPROPAGATION(X_batch, Y_batch, cache)
+                    self.update_parameters(grads, learning_rate)
+                    if verbose:
+                        predictions = np.argmax(Y_P, axis=0)
+                        true_labels = np.argmax(Y, axis=0)
+                        self.print_metrics(predictions, true_labels, cost, epoch=i, batch=batch_i)
             else:
-                X_batch = X
-                Y_batch = Y
+                Y_P, cache = self.FORWARD_PROPAGATION(X)
+                cost = self.cost_function(Y_P, Y)
+                grads = self.BACK_WARDPROPAGATION(X, Y, cache)
+                self.update_parameters(grads, learning_rate)
+                if verbose:
+                    predictions = np.argmax(Y_P, axis=0)
+                    true_labels = np.argmax(Y, axis=0)
+                    self.print_metrics(predictions, true_labels, cost, epoch=i)
 
-            Y_P, cache = self.FORWARD_PROPAGATION(X_batch)
-            cost = self.cost_function(Y_P, Y_batch)
-            grads = self.BACK_WARDPROPAGATION(X_batch, Y_batch, cache)
-            self.update_parameters(grads, learning_rate)
 
-            if i % 100: print(f"Epoch{i}, Cost: {cost:.4f}")
