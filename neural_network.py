@@ -247,9 +247,9 @@ class NeuralNetwork:
             yield X[:, batch_indices], Y[:, batch_indices]
 
     def print_metrics(self, predictions: np.ndarray, true_labels: np.ndarray, cost, epoch=0, batch=0):
-        precision = precision_score(true_labels, predictions, average='macro')
-        recall = recall_score(true_labels, predictions, average='macro')
-        f1 = f1_score(true_labels, predictions, average='macro')
+        precision = precision_score(true_labels, predictions, average='macro', zero_division=0)
+        recall = recall_score(true_labels, predictions, average='macro', zero_division=0)
+        f1 = f1_score(true_labels, predictions, average='macro', zero_division=0)
         accuracy = accuracy_score(true_labels, predictions)
    
         print("---------------------------------------------------------------------")
@@ -299,18 +299,19 @@ class NeuralNetwork:
             if batch_size:
                 batch_gen = self.batch_generator(X, Y, batch_size)
                 batch_costs = []
-                batch_i = -1
+                batch_i = 0
                 for X_batch, Y_batch in batch_gen:
-                    batch_i += 1
                     Y_P, cache = self.FORWARD_PROPAGATION(X_batch)
                     cost = self.cost_function(Y_P, Y_batch)
                     batch_costs.append(cost)
                     grads = self.BACK_WARDPROPAGATION(X_batch, Y_batch, cache)
                     self.update_parameters(grads, learning_rate)
-                    if verbose and batch_i == 0:  # Print only for first batch as an example
+
+                    if verbose and batch_i == 0:
                         predictions = np.argmax(Y_P, axis=0)
                         true_labels = np.argmax(Y_batch, axis=0)
                         self.print_metrics(predictions, true_labels, cost, epoch=i, batch=batch_i)
+                    batch_i += 1
                 # Compute and print average cost across batches
                 avg_cost = np.mean(batch_costs)
                 if verbose:
@@ -347,7 +348,7 @@ class NeuralNetwork:
                 batch_i += 1
                 Y_P, _ = self.FORWARD_PROPAGATION(X_batch)
                 cost = self.cost_function(Y_P, Y_batch)
-                if verbose:
+                if verbose and batch_size % 100: 
                     predictions = np.argmax(Y_P, axis=0)
                     true_labels = np.argmax(Y_batch, axis=0)
                     self.print_metrics(predictions, true_labels, cost, batch=batch_i)

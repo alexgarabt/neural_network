@@ -16,3 +16,5 @@ This repo is a learning proyect.
     * accuracy
     * F~~
 ~~6- Inference~~
+
+### train with ./dataset/mnist
