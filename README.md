@@ -3,106 +3,121 @@ Custom implementation of the vanilla neural network This repo is a learning proy
 
 ## Neural Network Implementation
 
-This is a vanilla feedforward neural network implemented from scratch in Python using NumPy. It supports multi-layer architectures with ReLU activation for hidden layers and softmax for the output layer, optimized using gradient descent with cross-entropy loss. Below is a detailed breakdown of its implementation, with mathematical formulations presented as blocks.
+This is a vanilla neural network that uses a fully connected architecture with customizable layers, allowing the definition of:
+- \( x \) neurons for the input layer
+- \( i_1, i_2, \dots, i_n \) neurons for each hidden layer
+- \( y \) neurons for the output layer
+
+The network is designed for general-purpose learning and utilizes the following components:
 
 ### Architecture
-The network is fully connected with a configurable number of layers and neurons:
-- **Input Layer**: Matches the number of input features ($n^{[0]}$), e.g., 784 for MNIST (28×28 pixels).
-- **Hidden Layers**: User-defined number of layers ($L-1$) and neurons per layer ($n^{[l]}$), using ReLU activation.
-- **Output Layer**: Matches the number of classes ($n^{[L]}$), e.g., 10 for MNIST, with softmax activation.
 
-Parameters:
-- **Weights** ($W^{[l]}$): For layer $l$, shape $(n^{[l]}, n^{[l-1]})$, initialized with He initialization:
-  $$
-  W^{[l]} \sim \mathcal{N}(0, \sqrt{2 / n^{[l-1]}})
-  $$
-- **Biases** ($b^{[l]}$): Shape $(n^{[l]}, 1)$, initialized to zeros:
-  $$
-  b^{[l]} = 0
-  $$
+The neural network is structured as follows:
+- **Weights:** \( W^{[l]} \) - weight matrix between layer \( l-1 \) and layer \( l \)
+- **Biases:** \( b^{[l]} \) - bias vector for layer \( l \)
+- **Activation Values (Cache):**
+  - **Pre-activation:** \( Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]} \)
+  - **Activation Output:** \( A^{[l]} = f(Z^{[l]}) \)
+
+### Activation Functions
+
+The following activation functions are used:
+- **ReLU (Rectified Linear Unit):**
+  \[
+  f(x) = \max(0, x)
+  \]
+- **Softmax (for output layer probability normalization):**
+  \[
+  \sigma(x_i) = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
+  \]
 
 ### Forward Propagation
-Forward propagation computes activations layer by layer for an input $X$ of shape $(n^{[0]}, m)$, where $m$ is the number of samples.
 
-For each layer $l$:
-- **Pre-activation**:
-  $$
-  Z^{[l]} = W^{[l]} \cdot A^{[l-1]} + b^{[l]}
-  $$
-  where $A^{[0]} = X$.
-- **Activation**:
-  - Hidden layers ($l = 1, ..., L-1$):
-    $$
-    A^{[l]} = \text{ReLU}(Z^{[l]}) = \max(0, Z^{[l]})
-    $$
-  - Output layer ($l = L$):
-    $$
-    A^{[L]} = \text{softmax}(Z^{[L]}) = \frac{e^{Z^{[L]} - \max(Z^{[L]})}}{\sum_{j} e^{Z^{[L]}_j - \max(Z^{[L]})}}
-    $$
-    (Subtracting $\max(Z^{[L]})$ ensures numerical stability.)
-
-The final output $A^{[L]}$ represents class probabilities, shape $(n^{[L]}, m)$. Intermediate $Z^{[l]}$ and $A^{[l]}$ values are cached for backpropagation.
+During forward propagation, the network computes activations layer by layer:
+\[
+Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
+\]
+\[
+A^{[l]} = \begin{cases} \text{ReLU}(Z^{[l]}), & \text{if } l < L \\ \text{Softmax}(Z^{[l]}), & \text{if } l = L \end{cases}
+\]
+where \( L \) is the number of layers in the network.
 
 ### Cost Function
-The network uses cross-entropy loss to measure the difference between predicted probabilities ($A^{[L]}$) and true labels ($Y$), both of shape $(n^{[L]}, m)$:
-$$
-J = -\frac{1}{m} \sum_{i=1}^{m} \sum_{k=1}^{n^{[L]}} Y_{k,i} \log(A^{[L]}_{k,i} + \epsilon)
-$$
-- $Y_{k,i}$: True label (1 if class $k$ is correct, 0 otherwise).
-- $A^{[L]}_{k,i}$: Predicted probability for class $k$, sample $i$.
-- $\epsilon = 10^{-8}$: Small constant to avoid $\log(0)$.
+
+The cost function used for optimization is the **Cross-Entropy Loss**:
+\[
+J = -\frac{1}{m} \sum_{i=1}^{m} \sum_{c=1}^{C} y_{i,c} \log(\hat{y}_{i,c} + \epsilon)
+\]
+where:
+- \( m \) is the number of training examples
+- \( C \) is the number of output classes
+- \( y_{i,c} \) is the actual label
+- \( \hat{y}_{i,c} \) is the predicted probability for class \( c \)
+- \( \epsilon \) is a small constant to prevent log(0)
 
 ### Backpropagation
-Backpropagation computes gradients of the cost $J$ with respect to parameters, propagating errors backward:
-- **Output Layer ($l = L$)**:
-  - For softmax with cross-entropy, the gradient simplifies to:
-    $$
-    dZ^{[L]} = A^{[L]} - Y
-    $$
-- **Hidden Layers ($l = L-1, ..., 1$)**:
-  - Gradient w.r.t. activation:
-    $$
-    dA^{[l]} = W^{[l+1]T} \cdot dZ^{[l+1]}
-    $$
-  - Gradient w.r.t. pre-activation (ReLU derivative):
-    $$
-    dZ^{[l]} = dA^{[l]} \cdot \mathbb{1}(Z^{[l]} > 0)
-    $$
-    where $\mathbb{1}(Z^{[l]} > 0)$ is 1 if $Z^{[l]} > 0$, 0 otherwise.
 
-- **Gradients for Parameters**:
-  - Weights:
-    $$
-    dW^{[l]} = \frac{1}{m} dZ^{[l]} \cdot A^{[l-1]T}
-    $$
-  - Biases:
-    $$
-    db^{[l]} = \frac{1}{m} \sum_{i=1}^{m} dZ^{[l]}_{:,i}
-    $$
+Backpropagation computes gradients to update parameters:
+- **Output layer gradient:**
+  \[
+  dZ^{[L]} = A^{[L]} - Y
+  \]
+- **Hidden layer gradients:**
+  \[
+  dW^{[l]} = \frac{1}{m} dZ^{[l]} A^{[l-1]T}
+  \]
+  \[
+  db^{[l]} = \frac{1}{m} \sum dZ^{[l]}
+  \]
+  \[
+  dZ^{[l-1]} = W^{[l]T} dZ^{[l]} * f'(Z^{[l-1]})
+  \]
+  where \( f' \) is the derivative of ReLU (1 if \( Z > 0 \), else 0).
 
-### Training Process
-The network is trained using gradient descent, with optional mini-batch support:
-- **Full Batch**: Updates parameters using the entire dataset ($X$, $Y$).
-- **Mini-Batch**: Shuffles data and processes batches of size `batch_size`, yielding $X_{\text{batch}}$, $Y_{\text{batch}}$.
+### Parameter Update
 
-For each epoch:
-1. Forward propagation computes $A^{[L]}$ and caches intermediates.
-2. Backpropagation calculates gradients $dW^{[l]}$, $db^{[l]}$.
-3. Parameters are updated:
-   $$
-   W^{[l]} \gets W^{[l]} - \alpha \cdot dW^{[l]}
-   $$
-   $$
-   b^{[l]} \gets b^{[l]} - \alpha \cdot db^{[l]}
-   $$
-   where $\alpha$ is the learning rate (default 0.01).
+Using **Gradient Descent**, weights and biases are updated as follows:
+\[
+W^{[l]} = W^{[l]} - \alpha dW^{[l]}
+\]
+\[
+b^{[l]} = b^{[l]} - \alpha db^{[l]}
+\]
+where \( \alpha \) is the learning rate.
 
-- **Metrics**: When `verbose=True`, accuracy, precision, recall, and F1-score are computed using scikit-learn, with predictions derived via $\arg\max(A^{[L]})$.
+## API
 
-### Implementation Details
-- **Initialization**: He initialization for weights reduces vanishing gradient issues with ReLU.
-- **Mini-Batch**: Random shuffling ensures varied gradient updates.
-- **Model Persistence**: `save_model` and `load_model` store/load parameters in `.npz` files.
+### Training & Metrics
+- **`TRAIN(X, Y, epochs, learning_rate, batch_size, verbose)`**
+  - Trains the neural network using forward and backward propagation.
+  - Supports mini-batch training.
+  - Prints performance metrics if `verbose=True`.
+
+- **`TEST(X, Y, batch_size, verbose)`**
+  - Evaluates the trained model using forward propagation.
+  - Prints accuracy, precision, recall, and F1-score.
+
+### How to Use
+
+```python
+# Initialize a neural network with 3 input neurons, one hidden layer (5 neurons), and 2 output neurons
+nn = NeuralNetwork(layers=[3, 5, 2])
+
+# Train the network
+nn.TRAIN(X_train, Y_train, epochs=1000, learning_rate=0.01, batch_size=32, verbose=True)
+
+# Test the network
+nn.TEST(X_test, Y_test, verbose=True)
+
+# Save the trained model
+nn.save_model("model.npz")
+
+# Load a trained model
+nn.load_model("model.npz")
+```
+
+This neural network provides a flexible and efficient implementation for classification problems, supporting batch training and evaluation with performance metrics.
+
 
 ## MNIST prediction implementation
 
@@ -130,3 +145,5 @@ dependencies = [
     "scikit-learn>=1.6.1",
 ]
 ```
+
+
