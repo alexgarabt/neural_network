@@ -1,6 +1,14 @@
 # Neural Network
 Custom implementation of the vanilla neural network This repo is a learning proyect.
 
+## Example of use
+> [!NOTE]
+> In the file `mnist_client.py` is implements the training and testing of the hand-written digit prediction
+> The client loads the data, preprocess it and train the NN
+The client trains the neural network over the train set and test it in its conterpart. Also implements a function to test the samples over the neural network
+
+https://github.com/user-attachments/assets/dc6c24cb-dd43-4d50-8e02-6fdc8d6c55e1
+
 ## Neural Network Implementation
 
 > [!TIP]
@@ -103,7 +111,8 @@ This implementation is designed for flexibility, allowing users to train neural 
 
 ## Hand-written digit prediction implementation
 > [!TIP]
-> Dataset contents in `dataset/` path
+> Dataset contents in `dataset/` path  
+
 For the hand hand-written digit prediction i had used the `MNIST`database (Modified National Institute of Standards and Technology database) is a large database of handwritten digits that is commonly used for training various image processing systems.
 
 The database contains a total of `70000 samples`
@@ -111,8 +120,8 @@ The database contains a total of `70000 samples`
 ### Training
 There are `60000` training samples that where chosen randomly form the original database, the contents are in the file `dataset/mnist_train.csv`
 ```bash
-dedalo@lab ~/Projects/vanilla-neural-networks/dataset                                                                                                documentation vanilla-neural-networks
-❯ wc  -l mnist_train.csv
+dedalo@lab ~/Projects/vanilla-neural-networks/dataset 
+$ wc  -l mnist_train.csv
 60000 mnist_train.csv
 ```
 ---
@@ -120,8 +129,8 @@ dedalo@lab ~/Projects/vanilla-neural-networks/dataset                           
 ### Test
 There are `10000` test samples that are the remains of the database after substracting the training samples to test real inference of knowledge, the contents are in teh file `dataset/mnist_test.csv`
 ```bash
-dedalo@lab ~/Projects/vanilla-neural-networks/dataset                                                                                                documentation vanilla-neural-networks
-❯ wc  -l mnist_test.csv 
+dedalo@lab ~/Projects/vanilla-neural-networks/dataset
+$ wc  -l mnist_test.csv 
 10000 mnist_test.csv
 ```
 
