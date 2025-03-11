@@ -1,10 +1,9 @@
 # Neural Network
-Custom implementation of the vanilla neural networks, gradient descent & backpropagation.
-This repo is a learning proyect.
+Custom implementation of the vanilla neural network This repo is a learning proyect.
 
 ## Neural Network Implementation
 
-This is a vanilla feedforward neural network implemented from scratch in Python using NumPy. It supports multi-layer architectures with ReLU activation for hidden layers and softmax for the output layer, optimized using gradient descent with cross-entropy loss. Below is a detailed breakdown of its implementation, including the mathematical foundations.
+This is a vanilla feedforward neural network implemented from scratch in Python using NumPy. It supports multi-layer architectures with ReLU activation for hidden layers and softmax for the output layer, optimized using gradient descent with cross-entropy loss. Below is a detailed breakdown of its implementation, with mathematical formulations presented as blocks.
 
 ### Architecture
 The network is fully connected with a configurable number of layers and neurons:
@@ -13,14 +12,20 @@ The network is fully connected with a configurable number of layers and neurons:
 - **Output Layer**: Matches the number of classes ($n^{[L]}$), e.g., 10 for MNIST, with softmax activation.
 
 Parameters:
-- **Weights** ($W^{[l]}$): For layer $l$, shape $(n^{[l]}, n^{[l-1]})$, initialized with He initialization: $W^{[l]} \sim \mathcal{N}(0, \sqrt{2 / n^{[l-1]}})$.
-- **Biases** ($b^{[l]}$): Shape $(n^{[l]}, 1)$, initialized to zeros.
+- **Weights** ($W^{[l]}$): For layer $l$, shape $(n^{[l]}, n^{[l-1]})$, initialized with He initialization:
+  $$
+  W^{[l]} \sim \mathcal{N}(0, \sqrt{2 / n^{[l-1]}})
+  $$
+- **Biases** ($b^{[l]}$): Shape $(n^{[l]}, 1)$, initialized to zeros:
+  $$
+  b^{[l]} = 0
+  $$
 
 ### Forward Propagation
-Forward propagation computes the activations layer by layer for an input $X$ of shape $(n^{[0]}, m)$, where $m$ is the number of samples.
+Forward propagation computes activations layer by layer for an input $X$ of shape $(n^{[0]}, m)$, where $m$ is the number of samples.
 
 For each layer $l$:
-- **Pre-activation**: 
+- **Pre-activation**:
   $$
   Z^{[l]} = W^{[l]} \cdot A^{[l-1]} + b^{[l]}
   $$
@@ -32,7 +37,7 @@ For each layer $l$:
     $$
   - Output layer ($l = L$):
     $$
-    A^{[L]} = \text{softmax}(Z^{[L]}) = \frac{e^{Z^{[L]} - \max(Z^{[L]})}}{\sum_{j} e^{Z^{[L)}_j - \max(Z^{[L]})}}
+    A^{[L]} = \text{softmax}(Z^{[L]}) = \frac{e^{Z^{[L]} - \max(Z^{[L]})}}{\sum_{j} e^{Z^{[L]}_j - \max(Z^{[L]})}}
     $$
     (Subtracting $\max(Z^{[L]})$ ensures numerical stability.)
 
@@ -98,6 +103,7 @@ For each epoch:
 - **Initialization**: He initialization for weights reduces vanishing gradient issues with ReLU.
 - **Mini-Batch**: Random shuffling ensures varied gradient updates.
 - **Model Persistence**: `save_model` and `load_model` store/load parameters in `.npz` files.
+
 ## MNIST prediction implementation
 
 ### Dataset
