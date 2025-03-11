@@ -17,50 +17,50 @@ The model follows standard deep learning techniques, including forward propagati
 
 Given an input **X**, the network performs forward propagation using the following equations:
 
-For each layer $$l$$:
+For each layer $$l$$:  
 
 $$Z^{(l)} = W^{(l)} A^{(l-1)} + b^{(l)}$$
 
 where:
--$$Z^{(l)}$$ is the weighted sum of inputs,
--$$W^{(l)}$$ is the weight matrix,
--$$ A^{(l-1)}$$ is the activation from the previous layer,
--$$ b^{(l)}$$ is the bias term.
+$$Z^{(l)}$$ is the weighted sum of inputs,  
+$$W^{(l)}$$ is the weight matrix,  
+$$ A^{(l-1)}$$ is the activation from the previous layer,  
+$$ b^{(l)}$$ is the bias term.  
 
-The activation function applied is:
+The activation function applied is:  
 
-**ReLU (Rectified Linear Unit) for hidden layers**:
-	$$A^{(l)} = \max(0, Z^{(l)})$$
-**Softmax for output layer**:
-	$$A^{(L)} = \frac{e^{Z^{(L)}}}{\sum e^{Z^{(L)}}}$$
+**ReLU (Rectified Linear Unit) for hidden layers**:  
+	$$A^{(l)} = \max(0, Z^{(l)})$$  
+**Softmax for output layer**:  
+	$$A^{(L)} = \frac{e^{Z^{(L)}}}{\sum e^{Z^{(L)}}}$$  
 
 ---
 
 ### Backpropagation & Parameter Updates
 
-The network uses **cross-entropy loss** for classification:
+The network uses **cross-entropy loss** for classification:  
 
 
 ```math
 \mathcal{L} = -\frac{1}{m} \sum \left( Y \log(A^{(L)}) + (1 - Y) \log(1 - A^{(L)}) \right)
-```
+```  
 
-To update the weights and biases, the gradients are computed as follows:
+To update the weights and biases, the gradients are computed as follows:  
 
-**Output layer gradient**:
- $$dZ^{(L)} = A^{(L)} - Y$$
-**Hidden layer gradient**:
- $$dZ^{(l)} = dA^{(l)} \cdot \mathbb{1}(Z^{(l)} > 0)$$ (ReLU derivative)
-**Gradient of weights and biases**:
-  $$dW^{(l)} = \frac{1}{m} dZ^{(l)} A^{(l-1)T}$$
-  $$db^{(l)} = \frac{1}{m} \sum dZ^{(l)}$$
+**Output layer gradient**:  
+ $$dZ^{(L)} = A^{(L)} - Y$$  
+**Hidden layer gradient**:  
+ $$dZ^{(l)} = dA^{(l)} \cdot \mathbb{1}(Z^{(l)} > 0)$$ (ReLU derivative)  
+**Gradient of weights and biases**:  
+  $$dW^{(l)} = \frac{1}{m} dZ^{(l)} A^{(l-1)T}$$  
+  $$db^{(l)} = \frac{1}{m} \sum dZ^{(l)}$$  
 
-The parameters are updated using **gradient descent**:
+The parameters are updated using **gradient descent**:  
 
-$$W^{(l)} = W^{(l)} - \alpha dW^{(l)}$$
-$$b^{(l)} = b^{(l)} - \alpha db^{(l)}$$
+$$W^{(l)} = W^{(l)} - \alpha dW^{(l)}$$  
+$$b^{(l)} = b^{(l)} - \alpha db^{(l)}$$  
 
-where $ \alpha $ is the **learning rate**.
+where $ \alpha $ is the **learning rate**.  
 
 ---
 
@@ -68,8 +68,8 @@ where $ \alpha $ is the **learning rate**.
 
 #### Training & Metrics
 
-- **Training**: The network trains using **mini-batch gradient descent** or **full-batch training** depending on user settings.
-- **Metrics**: During training, key evaluation metrics are computed, including **accuracy, precision, recall, and F1-score**.
+- **Training**: The network trains using **mini-batch gradient descent** or **full-batch training** depending on user settings.  
+- **Metrics**: During training, key evaluation metrics are computed, including **accuracy, precision, recall, and F1-score**.  
 
 #### How to Use
 
