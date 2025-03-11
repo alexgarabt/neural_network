@@ -37,6 +37,7 @@ The activation function applied is:
 **Softmax for output layer**:  
 	$$A^{(L)} = \frac{e^{Z^{(L)}}}{\sum e^{Z^{(L)}}}$$  
 
+![Forward propagation](./img/forward.png)
 ---
 
 ### Backpropagation & Parameter Updates
@@ -65,6 +66,7 @@ $$b^{(l)} = b^{(l)} - \alpha db^{(l)}$$
 
 where $$\alpha$$ is the **learning rate**.  
 
+![Backward propagation](./img/backward.png)
 ---
 
 ### API
