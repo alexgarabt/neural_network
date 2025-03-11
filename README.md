@@ -3,6 +3,9 @@ Custom implementation of the vanilla neural network This repo is a learning proy
 
 ## Neural Network Implementation
 
+> [!TIP]
+> Should look to the `neural_network.py` source content
+
 This repository contains a vanilla neural network implemented from scratch using NumPy. The network is fully customizable, allowing users to define:
 
 - Number of neurons in the **input layer**
@@ -98,9 +101,29 @@ where $$\alpha$$ is the **learning rate**.
 
 This implementation is designed for flexibility, allowing users to train neural networks with varying architectures while providing a simple interface for model training and evaluation.
 
-## MNIST prediction implementation
+## Hand-written digit prediction implementation
+> [!TIP]
+> Dataset contents in `dataset/` path
+For the hand hand-written digit prediction i had used the `MNIST`database (Modified National Institute of Standards and Technology database) is a large database of handwritten digits that is commonly used for training various image processing systems.
 
-### Dataset
+The database contains a total of `70000 samples`
+
+### Training
+There are `60000` training samples that where chosen randomly form the original database, the contents are in the file `dataset/mnist_train.csv`
+```bash
+dedalo@lab ~/Projects/vanilla-neural-networks/dataset                                                                                                documentation vanilla-neural-networks
+❯ wc  -l mnist_train.csv
+60000 mnist_train.csv
+```
+---
+
+### Test
+There are `10000` test samples that are the remains of the database after substracting the training samples to test real inference of knowledge, the contents are in teh file `dataset/mnist_test.csv`
+```bash
+dedalo@lab ~/Projects/vanilla-neural-networks/dataset                                                                                                documentation vanilla-neural-networks
+❯ wc  -l mnist_test.csv 
+10000 mnist_test.csv
+```
 
 ## Dependencies
 ### Neural Network
