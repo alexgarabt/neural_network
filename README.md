@@ -3,121 +3,95 @@ Custom implementation of the vanilla neural network This repo is a learning proy
 
 ## Neural Network Implementation
 
-This is a vanilla neural network that uses a fully connected architecture with customizable layers, allowing the definition of:
-- \( x \) neurons for the input layer
-- \( i_1, i_2, \dots, i_n \) neurons for each hidden layer
-- \( y \) neurons for the output layer
+This repository contains a vanilla neural network implemented from scratch using NumPy. The network is fully customizable, allowing users to define:
 
-The network is designed for general-purpose learning and utilizes the following components:
+- Number of neurons in the **input layer**
+- Number of neurons in each **hidden layer**
+- Number of neurons in the **output layer**
 
-### Architecture
+The model follows standard deep learning techniques, including forward propagation, backpropagation, and gradient descent for parameter optimization.
 
-The neural network is structured as follows:
-- **Weights:** \( W^{[l]} \) - weight matrix between layer \( l-1 \) and layer \( l \)
-- **Biases:** \( b^{[l]} \) - bias vector for layer \( l \)
-- **Activation Values (Cache):**
-  - **Pre-activation:** \( Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]} \)
-  - **Activation Output:** \( A^{[l]} = f(Z^{[l]}) \)
+---
 
-### Activation Functions
+### Architecture & Forward Propagation
 
-The following activation functions are used:
-- **ReLU (Rectified Linear Unit):**
-  \[
-  f(x) = \max(0, x)
-  \]
-- **Softmax (for output layer probability normalization):**
-  \[
-  \sigma(x_i) = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
-  \]
+Given an input **X**, the network performs forward propagation using the following equations:
 
-### Forward Propagation
+For each layer $$l$$:
 
-During forward propagation, the network computes activations layer by layer:
-\[
-Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
-\]
-\[
-A^{[l]} = \begin{cases} \text{ReLU}(Z^{[l]}), & \text{if } l < L \\ \text{Softmax}(Z^{[l]}), & \text{if } l = L \end{cases}
-\]
-where \( L \) is the number of layers in the network.
+$$Z^{(l)} = W^{(l)} A^{(l-1)} + b^{(l)}$$
 
-### Cost Function
-
-The cost function used for optimization is the **Cross-Entropy Loss**:
-\[
-J = -\frac{1}{m} \sum_{i=1}^{m} \sum_{c=1}^{C} y_{i,c} \log(\hat{y}_{i,c} + \epsilon)
-\]
 where:
-- \( m \) is the number of training examples
-- \( C \) is the number of output classes
-- \( y_{i,c} \) is the actual label
-- \( \hat{y}_{i,c} \) is the predicted probability for class \( c \)
-- \( \epsilon \) is a small constant to prevent log(0)
+-$$Z^{(l)}$$ is the weighted sum of inputs,
+-$$W^{(l)}$$ is the weight matrix,
+-$$ A^{(l-1)}$$ is the activation from the previous layer,
+-$$ b^{(l)}$$ is the bias term.
 
-### Backpropagation
+The activation function applied is:
 
-Backpropagation computes gradients to update parameters:
-- **Output layer gradient:**
-  \[
-  dZ^{[L]} = A^{[L]} - Y
-  \]
-- **Hidden layer gradients:**
-  \[
-  dW^{[l]} = \frac{1}{m} dZ^{[l]} A^{[l-1]T}
-  \]
-  \[
-  db^{[l]} = \frac{1}{m} \sum dZ^{[l]}
-  \]
-  \[
-  dZ^{[l-1]} = W^{[l]T} dZ^{[l]} * f'(Z^{[l-1]})
-  \]
-  where \( f' \) is the derivative of ReLU (1 if \( Z > 0 \), else 0).
+**ReLU (Rectified Linear Unit) for hidden layers**:
+	$$A^{(l)} = \max(0, Z^{(l)})$$
+**Softmax for output layer**:
+	$$A^{(L)} = \frac{e^{Z^{(L)}}}{\sum e^{Z^{(L)}}}$$
 
-### Parameter Update
+---
 
-Using **Gradient Descent**, weights and biases are updated as follows:
-\[
-W^{[l]} = W^{[l]} - \alpha dW^{[l]}
-\]
-\[
-b^{[l]} = b^{[l]} - \alpha db^{[l]}
-\]
-where \( \alpha \) is the learning rate.
+### Backpropagation & Parameter Updates
 
-## API
+The network uses **cross-entropy loss** for classification:
 
-### Training & Metrics
-- **`TRAIN(X, Y, epochs, learning_rate, batch_size, verbose)`**
-  - Trains the neural network using forward and backward propagation.
-  - Supports mini-batch training.
-  - Prints performance metrics if `verbose=True`.
 
-- **`TEST(X, Y, batch_size, verbose)`**
-  - Evaluates the trained model using forward propagation.
-  - Prints accuracy, precision, recall, and F1-score.
-
-### How to Use
-
-```python
-# Initialize a neural network with 3 input neurons, one hidden layer (5 neurons), and 2 output neurons
-nn = NeuralNetwork(layers=[3, 5, 2])
-
-# Train the network
-nn.TRAIN(X_train, Y_train, epochs=1000, learning_rate=0.01, batch_size=32, verbose=True)
-
-# Test the network
-nn.TEST(X_test, Y_test, verbose=True)
-
-# Save the trained model
-nn.save_model("model.npz")
-
-# Load a trained model
-nn.load_model("model.npz")
+```math
+\mathcal{L} = -\frac{1}{m} \sum \left( Y \log(A^{(L)}) + (1 - Y) \log(1 - A^{(L)}) \right)
 ```
 
-This neural network provides a flexible and efficient implementation for classification problems, supporting batch training and evaluation with performance metrics.
+To update the weights and biases, the gradients are computed as follows:
 
+**Output layer gradient**:
+ $$dZ^{(L)} = A^{(L)} - Y$$
+**Hidden layer gradient**:
+ $$dZ^{(l)} = dA^{(l)} \cdot \mathbb{1}(Z^{(l)} > 0)$$ (ReLU derivative)
+**Gradient of weights and biases**:
+  $$dW^{(l)} = \frac{1}{m} dZ^{(l)} A^{(l-1)T}$$
+  $$db^{(l)} = \frac{1}{m} \sum dZ^{(l)}$$
+
+The parameters are updated using **gradient descent**:
+
+$$W^{(l)} = W^{(l)} - \alpha dW^{(l)}$$
+$$b^{(l)} = b^{(l)} - \alpha db^{(l)}$$
+
+where $ \alpha $ is the **learning rate**.
+
+---
+
+### API
+
+#### Training & Metrics
+
+- **Training**: The network trains using **mini-batch gradient descent** or **full-batch training** depending on user settings.
+- **Metrics**: During training, key evaluation metrics are computed, including **accuracy, precision, recall, and F1-score**.
+
+#### How to Use
+
+1. **Initialize the network**:
+    ```python
+    model = NeuralNetwork(layers=[3, 5, 2])
+    ```
+2. **Train the model**:
+    ```python
+    model.TRAIN(X_train, Y_train, epochs=1000, learning_rate=0.01, batch_size=32, verbose=True)
+    ```
+3. **Test the model**:
+    ```python
+    model.TEST(X_test, Y_test, verbose=True)
+    ```
+4. **Save & Load parameters**:
+    ```python
+    model.save_model("parameters.npz")
+    model.load_model("parameters.npz")
+    ```
+
+This implementation is designed for flexibility, allowing users to train neural networks with varying architectures while providing a simple interface for model training and evaluation.
 
 ## MNIST prediction implementation
 
