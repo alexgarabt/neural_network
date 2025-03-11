@@ -21,11 +21,14 @@ For each layer $$l$$:
 
 $$Z^{(l)} = W^{(l)} A^{(l-1)} + b^{(l)}$$
 
-where:
-$$Z^{(l)}$$ is the weighted sum of inputs,  
-$$W^{(l)}$$ is the weight matrix,  
-$$ A^{(l-1)}$$ is the activation from the previous layer,  
-$$ b^{(l)}$$ is the bias term.  
+where:  
+- $$Z^{(l)}$$ is the weighted sum of inputs,  
+
+- $$W^{(l)}$$ is the weight matrix,  
+
+- $$A^{(l-1)}$$ is the activation from the previous layer,  
+
+- $$b^{(l)}$$ is the bias term.  
 
 The activation function applied is:  
 
@@ -60,7 +63,7 @@ The parameters are updated using **gradient descent**:
 $$W^{(l)} = W^{(l)} - \alpha dW^{(l)}$$  
 $$b^{(l)} = b^{(l)} - \alpha db^{(l)}$$  
 
-where $ \alpha $ is the **learning rate**.  
+where $$\alpha$$ is the **learning rate**.  
 
 ---
 
