@@ -4,10 +4,17 @@ Custom implementation of the vanilla neural network This repo is a learning proy
 ## Example of use
 > [!NOTE]
 > In the file `mnist_client.py` is implements the training and testing of the hand-written digit prediction
+> In the file `cifar10_client.py` is implements the training and testing of 10 objects image classfication prediction
 > The client loads the data, preprocess it and train the NN
 The client trains the neural network over the train set and test it in its conterpart. Also implements a function to test the samples over the neural network
 
+### MNIST classification  
+
 https://github.com/user-attachments/assets/dc6c24cb-dd43-4d50-8e02-6fdc8d6c55e1
+
+### CIFAR-10 classification  
+
+https://github.com/user-attachments/assets/4ff68191-21b4-41cb-ba6c-88b6af4b89b9
 
 ## Neural Network Implementation
 
@@ -95,7 +102,7 @@ where $$\alpha$$ is the **learning rate**.
     ```
 2. **Train the model**:
     ```python
-    model.TRAIN(X_train, Y_train, epochs=1000, learning_rate=0.01, batch_size=32, verbose=True)
+    model.TRAIN(X_train, Y_train, epochs=64, learning_rate=0.01, batch_size=32, verbose=True)
     ```
 3. **Test the model**:
     ```python
@@ -109,37 +116,58 @@ where $$\alpha$$ is the **learning rate**.
 
 This implementation is designed for flexibility, allowing users to train neural networks with varying architectures while providing a simple interface for model training and evaluation.
 
-## Hand-written digit prediction implementation
+## Hand-written digit classification implementation
 > [!TIP]
-> Dataset contents in `dataset/` path  
+> Dataset contents in `dataset/MNIST` path  
 
 For the hand hand-written digit prediction i had used the `MNIST`database (Modified National Institute of Standards and Technology database) is a large database of handwritten digits that is commonly used for training various image processing systems.
 
 The database contains a total of `70000 samples`
 
 ### Training
-There are `60000` training samples that where chosen randomly form the original database, the contents are in the file `dataset/mnist_train.csv`
+There are `60000` training samples that where chosen randomly form the original database, the contents are in the file `dataset/MNIST/mnist_train.csv`
 ```bash
-dedalo@lab ~/Projects/vanilla-neural-networks/dataset 
+dedalo@lab ~/Projects/vanilla-neural-networks/dataset/MNIST/
 $ wc  -l mnist_train.csv
 60000 mnist_train.csv
 ```
 ---
 
 ### Test
-There are `10000` test samples that are the remains of the database after substracting the training samples to test real inference of knowledge, the contents are in teh file `dataset/mnist_test.csv`
+There are `10000` test samples that are the remains of the database after substracting the training samples to test real inference of knowledge, the contents are in teh file `dataset/MNIST/mnist_test.csv`
 ```bash
-dedalo@lab ~/Projects/vanilla-neural-networks/dataset
+dedalo@lab ~/Projects/vanilla-neural-networks/dataset/MNIST/
 $ wc  -l mnist_test.csv 
 10000 mnist_test.csv
 ```
+
+## CIFAR-10 Classification Implementation
+
+### Dataset
+
+The CIFAR-10 dataset consists of **60000 32×32 color images** categorized into **10 classes**:
+
+- Airplane, Automobile, Bird, Cat, Deer, Dog, Frog, Horse, Ship, Truck
+
+The dataset is structured as follows:
+- **Training set**: 50000 images
+- **Test set**: 10000 images
+
+Stored in the path: `dataset/CIFAR10/`
+
+### Preprocessing
+
+- Each image is **flattened** into a **3072-dimensional vector** (32×32 pixels × 3 color channels).
+- The pixel values are **normalized** to the range `[0,1]` by dividing by 255.
+- Labels are **one-hot encoded** into a shape `(10, num_samples)`.
+
 
 ## Dependencies
 ### Neural Network
 The neural network is implemented form scratch, give that the goal was not to rewrite the matrix opeartions or implement the metrics operations the dependencies used are `numpy` for matrix operations and `sklearn` for the testing metrics.
 
 ### Training 
-The Training dependencies used for the hand-written digit prediction are `pandas` for reading the dataset and parse it into `numpy` format. `matplotlib` & `pyqpt6` is used for the displaying hand-written digits of the database in graphical way.  
+The Training dependencies used are `pandas` for reading the dataset and parse it into `numpy` format. `matplotlib` & `pyqpt6` is used for the displaying hand-written digits of the database in graphical way.  
 `pyproject.toml`
 ```toml
 [project]

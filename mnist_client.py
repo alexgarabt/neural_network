@@ -4,8 +4,8 @@ from matplotlib import pyplot as plt
 from neural_network import NeuralNetwork
 
 # Load the data
-train_data = pd.read_csv("./dataset/mnist_train.csv")
-test_data = pd.read_csv("./dataset/mnist_test.csv")
+train_data = pd.read_csv("./dataset/MNIST/mnist_train.csv")
+test_data = pd.read_csv("./dataset/MNIST/mnist_test.csv")
 
 train_data = np.array(train_data)
 test_data = np.array(test_data)
@@ -33,7 +33,7 @@ nn = NeuralNetwork(layers=[28*28, 128, 128, 10])
 # 10 output neurons, one for each class/number
 
 # Train with more epochs and a reasonable batch size
-nn.TRAIN(X_train, Y_train, epochs=20, batch_size=64, verbose=True)
+nn.TRAIN(X_train, Y_train, learning_rate=0.01 ,epochs=20, batch_size=64, verbose=True)
 
 print("-----------------------------------------------")
 print("TEST METRICS")
