@@ -1,5 +1,5 @@
 # Neural Network
-Custom implementation of the vanilla neural network This repo is a learning proyect.
+Custom implementation of neural network flexible architecture that allows to define any number of layers and neurons. This repo is a learning proyect.
 
 ## Example of use
 > [!NOTE]
