@@ -1,5 +1,5 @@
 # Neural Network
-Custom implementation of neural network flexible architecture that allows to define any number of layers and neurons. This repo is a learning proyect.
+Custom implementation of [neural network/MLP (Multilayer Perceptron)](https://en.wikipedia.org/wiki/Multilayer_perceptron) architecture that allows flexible definition of layers and neurons. This repo is a learning proyect.
 
 ## Example of use
 > [!NOTE]
